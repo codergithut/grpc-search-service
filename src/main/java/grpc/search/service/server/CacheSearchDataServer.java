@@ -24,10 +24,4 @@ public interface CacheSearchDataServer {
      */
     void cleanSearchDataServer();
 
-    /**
-     * 更新缓存
-     * @param key
-     * @param value
-     */
-    void updateCacheSearchData(String key, String value);
 }

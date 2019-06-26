@@ -9,6 +9,7 @@ import grpc.search.service.model.SearchModeData;
 import io.grpc.stub.StreamObserver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.util.StringUtils;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -56,6 +57,8 @@ public class GetDataBySqlServer
         verifySqlRequest.verifySqlPermission(request, keyId);
         dataSearchServer.setSQLRequest(request);
         CacheModel cacheModel = new CacheModel();
+        cacheModel.setReadCache(true);
+        cacheModel.setWriteCache(true);
         String message = null;
         Future<SearchModeData> searchModeData = null;
 
@@ -64,8 +67,11 @@ public class GetDataBySqlServer
          */
         if(cacheModel.isReadCache()) {
             message = cacheSearchDataServer.getSearchDataServer(getSqlRequestParamSign(request));
-            writeResponseMessage(responseObserver, message);
-            return ;
+            if(message != null) {
+                System.out.println("read data from cache ...");
+                writeResponseMessage(responseObserver, message);
+                return ;
+            }
         }
 
 
@@ -73,6 +79,7 @@ public class GetDataBySqlServer
          * 判断缓存是否命中
          */
         if(message == null) {
+            System.out.println("read data from service ...");
             searchModeData = dataSearchServer.getDataBySQLSever();
         }
 
@@ -80,6 +87,7 @@ public class GetDataBySqlServer
          * 判断数据是否可以写入缓存
          */
         if(cacheModel.isWriteCache()) {
+            System.out.println("write data to cache");
             cacheSearchDataServer.cacheSearchDataServer(getSqlRequestParamSign(request), searchModeData.get().getMessage());
         }
 
