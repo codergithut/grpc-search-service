@@ -1,14 +1,17 @@
 package grpc.search.service.config;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.google.common.util.concurrent.RateLimiter;
 import grpc.search.service.grpc.server.HelloWorldServer;
 import grpc.search.service.server.*;
-import grpc.search.service.server.impl.CacheSearchDataServerImpl;
-import grpc.search.service.server.impl.MysqlDataSearchServer;
-import grpc.search.service.server.impl.VerifySqlRequestImpl;
+import grpc.search.service.server.impl.*;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
@@ -20,6 +23,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  */
 @EnableAsync
 @Configuration
+@PropertySource(value = { "classpath:config.properties" }, ignoreResourceNotFound = true)
 public class BeanConfig {
 
     /**
@@ -36,6 +40,47 @@ public class BeanConfig {
         executor.setThreadNamePrefix("taskExecutor-");
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
         return executor;
+    }
+
+    @Bean
+    public ServiceLogServer getServiceLogServer() {
+        return new ServiceLogServerImpl();
+    }
+
+    @Bean
+    public SystemLogServer getSystemLogServer() {
+        return new SystemLogServerImpl();
+    }
+
+    @Bean
+    public Log getLog() {
+        return LogFactory.getLog("system");
+    }
+
+    @Value("${mysql.drivename}")
+    private String driveName;
+
+    @Value("${mysql.username}")
+    private String userName;
+
+    @Value("${mysql.password}")
+    private String password;
+
+    @Value("${mysql.url}")
+    private String url;
+
+
+    @Bean
+    public DruidDataSource getDruidDataSource() {
+        DruidDataSource dataSource = new DruidDataSource();
+        dataSource.setDriverClassName(driveName);
+        dataSource.setUsername(userName);
+        dataSource.setPassword(password);
+        dataSource.setUrl(url);
+        dataSource.setInitialSize(5);
+        dataSource.setMinIdle(1);
+        dataSource.setMaxActive(10);
+        return dataSource;
     }
 
     /**
@@ -66,13 +111,16 @@ public class BeanConfig {
         return new MysqlDataSearchServer();
     }
 
+
+    @Value("${guava.RateLimiter.permitsPerSecond}")
+    private double permitsPerSecond;
     /**
      * guava 限流器
      * @return
      */
     @Bean
     public RateLimiter getRateLimiter() {
-        RateLimiter rateLimiter = RateLimiter.create(0.2);
+        RateLimiter rateLimiter = RateLimiter.create(permitsPerSecond);
         return rateLimiter;
     }
 

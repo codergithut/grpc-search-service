@@ -1,14 +1,27 @@
 package grpc.search.service.server.impl;
 
+import com.alibaba.druid.Constants;
+import com.alibaba.druid.pool.DruidDataSource;
+import com.alibaba.fastjson.JSON;
+import grpc.search.service.config.ResultCode;
 import grpc.search.service.grpc.SqlRequest;
 import grpc.search.service.model.SearchModeData;
 import grpc.search.service.server.DataSearchServer;
+import grpc.search.service.server.ServiceLogServer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Future;
 
 /**
@@ -21,6 +34,9 @@ public class MysqlDataSearchServer implements DataSearchServer {
 
     private SqlRequest sqlRequest;
 
+    @Autowired
+    DruidDataSource druidDataSource;
+
     public void setSQLRequest(SqlRequest sqlRequest) {
         this.sqlRequest = sqlRequest;
     }
@@ -28,11 +44,33 @@ public class MysqlDataSearchServer implements DataSearchServer {
     @Async("taskExecutor")
     @Override
     public Future<SearchModeData> getDataBySQLSever() throws InterruptedException {
-        //todo 获取mysql数据库数据
-//        String sql = sqlRequest.getSql();
-        SearchModeData searchModeData = new SearchModeData();
-        searchModeData.setCode(11);
-        searchModeData.setMessage("haha");
-        return new AsyncResult<>(searchModeData);
+        String sql = sqlRequest.getSql();
+        int code = 0;
+        List<Map<String, Object>> data = new ArrayList<>();
+        PreparedStatement pstmt;
+        try {
+            pstmt = druidDataSource.getConnection().prepareStatement(sql);
+            ResultSet rs = pstmt.executeQuery();
+            int col = rs.getMetaData().getColumnCount();
+            List<String> cloNames = new ArrayList<String>();
+            for(int i = 1; i <=col; i++) {
+                cloNames.add(rs.getMetaData().getColumnName(i));
+            }
+            while (rs.next()) {
+                Map<String,Object> detail = new HashMap<>();
+                for (int i = 1; i <= col; i++) {
+                    detail.put(cloNames.get(i-1), rs.getObject(i));
+                }
+                data.add(detail);
+            }
+        } catch (SQLException e) {
+            code = ResultCode.SEARCH_DATA_ERROR;
+            e.printStackTrace();
+        } finally {
+            SearchModeData searchModeData = new SearchModeData();
+            searchModeData.setCode(code);
+            searchModeData.setMessage(JSON.toJSONString(data));
+            return new AsyncResult<>(searchModeData);
+        }
     }
 }

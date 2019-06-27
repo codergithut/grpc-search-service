@@ -33,10 +33,11 @@ public class HelloWorldClient {
     }
 
     public  void getDataByServer(String name){
-        SqlRequest request = SqlRequest.newBuilder().setSql("select * from user")
+        SqlRequest request = SqlRequest.newBuilder().setSql("select text, username from test")
                 .setToken(token).build();
         ServerReply response = blockingStub.getDataBySql(request);
-        System.out.println(response.getMessage());
+        System.out.println("service recive data : " + response.getMessage());
+        System.out.println("message code : " + response.getMessagecode());
     }
 
     public static void main(String[] args) throws InterruptedException {

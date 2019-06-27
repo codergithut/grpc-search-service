@@ -1,16 +1,18 @@
 package grpc.search.service.server;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
+import grpc.search.service.config.ResultCode;
 import grpc.search.service.grpc.ServerReply;
 import grpc.search.service.grpc.SqlRequest;
 import grpc.search.service.grpc.service.GetDataBySqlGrpc;
 import grpc.search.service.model.CacheModel;
 import grpc.search.service.model.SearchModeData;
+import grpc.search.service.model.ServiceLogModel;
 import io.grpc.stub.StreamObserver;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.util.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 
+import java.util.Date;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -23,6 +25,9 @@ public class GetDataBySqlServer
         extends GetDataBySqlGrpc.GetDataBySqlImplBase {
 
     private static final String SQL_TYPE = "mysql";
+
+    @Value("${timeout.value}")
+    private int timeout;
 
     /**
      * 底层数据获取
@@ -43,6 +48,18 @@ public class GetDataBySqlServer
     private CacheSearchDataServer cacheSearchDataServer;
 
     /**
+     * 业务日志收集服务
+     */
+    @Autowired
+    private ServiceLogServer serviceLogServer;
+
+    /**
+     * 系统日志收集服务
+     */
+    @Autowired
+    private SystemLogServer systemLogServer;
+
+    /**
      * 获取数据库数据
      * @param request
      * @param responseObserver
@@ -50,10 +67,27 @@ public class GetDataBySqlServer
     @Override
     public void getDataBySql(SqlRequest request,
                              StreamObserver<ServerReply> responseObserver) throws InterruptedException, ExecutionException{
+        int messageCode = ResultCode.SUCCESS;
+
         DataSearchServer dataSearchServer = dataSearchServerManage.getDataSearchSeverByType(SQL_TYPE);
-        DecodedJWT jwt = verifySqlRequest.verifyTokenPermission(request);
-        String keyId = jwt.getKeyId();
-        System.out.println("keyId:" + keyId);
+        if(dataSearchServer == null) {
+            systemLogServer.error("can not found type");
+            messageCode = ResultCode.SEARCH_TYPE_UNFOUND;
+            writeResponseMessage(responseObserver, "can not foud type", messageCode, request.getSql());
+            return ;
+        }
+
+        DecodedJWT jwt = null;
+        String keyId = null;
+        try {
+            jwt = verifySqlRequest.verifyTokenPermission(request);
+            keyId = jwt.getKeyId();
+        } catch (Exception e) {
+            messageCode = ResultCode.AUTH_ERROR_CODE;
+            systemLogServer.error("Auth fail");
+            writeResponseMessage(responseObserver, "verfiy fail", messageCode, request.getSql());
+            return ;
+        }
         verifySqlRequest.verifySqlPermission(request, keyId);
         dataSearchServer.setSQLRequest(request);
         CacheModel cacheModel = new CacheModel();
@@ -68,8 +102,8 @@ public class GetDataBySqlServer
         if(cacheModel.isReadCache()) {
             message = cacheSearchDataServer.getSearchDataServer(getSqlRequestParamSign(request));
             if(message != null) {
-                System.out.println("read data from cache ...");
-                writeResponseMessage(responseObserver, message);
+                systemLogServer.info("read data from cache ...");
+                writeResponseMessage(responseObserver, message, messageCode, request.getSql());
                 return ;
             }
         }
@@ -79,26 +113,27 @@ public class GetDataBySqlServer
          * 判断缓存是否命中
          */
         if(message == null) {
-            System.out.println("read data from service ...");
+            systemLogServer.info("read data from service ...");
             searchModeData = dataSearchServer.getDataBySQLSever();
         }
 
-        /**
-         * 判断数据是否可以写入缓存
-         */
-        if(cacheModel.isWriteCache()) {
-            System.out.println("write data to cache");
-            cacheSearchDataServer.cacheSearchDataServer(getSqlRequestParamSign(request), searchModeData.get().getMessage());
-        }
-
         try {
-            SearchModeData data = searchModeData.get(1, TimeUnit.SECONDS);
+            SearchModeData data = searchModeData.get(timeout, TimeUnit.SECONDS);
             message = data.getMessage();
+            /**
+             * 判断数据是否可以写入缓存
+             */
+            if(cacheModel.isWriteCache()) {
+                systemLogServer.info("write data to cache");
+                cacheSearchDataServer.cacheSearchDataServer(getSqlRequestParamSign(request), message);
+            }
         } catch (TimeoutException e) {
+            systemLogServer.warn("time out error");
             e.printStackTrace();
-            message = "error";
+            message = "time out error";
+            messageCode = ResultCode.TIME_OUT_ERROR;
         } finally {
-            writeResponseMessage(responseObserver, message);
+            writeResponseMessage(responseObserver, message, messageCode, request.getSql());
         }
     }
 
@@ -107,8 +142,18 @@ public class GetDataBySqlServer
      * @param responseObserver
      * @param message
      */
-    public void writeResponseMessage(StreamObserver<ServerReply> responseObserver,String message) {
-        ServerReply reply = ServerReply.getDefaultInstance().newBuilder().setMessage(message).build();
+    public void writeResponseMessage(StreamObserver<ServerReply> responseObserver,String message,
+                                     int messageCode, String sql) {
+        //todo 异步插入数据
+        ServiceLogModel serviceLogModel = new ServiceLogModel();
+        serviceLogModel
+                .bulidCode(messageCode)
+                .buildSearchTime(new Date().getTime())
+                .buildParam(sql);
+        serviceLogServer.saveServiceLogToService(serviceLogModel);
+        //给客户端返回值
+        ServerReply reply = ServerReply.getDefaultInstance().newBuilder()
+                .setMessage(message).setMessagecode(messageCode).build();
         responseObserver.onNext(reply);
         responseObserver.onCompleted();
     }

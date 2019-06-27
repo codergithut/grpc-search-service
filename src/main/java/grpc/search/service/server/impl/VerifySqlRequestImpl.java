@@ -23,15 +23,11 @@ public class VerifySqlRequestImpl implements VerifySqlRequest {
 
     @Override
     public DecodedJWT verifyTokenPermission(SqlRequest sqlRequest) {
-        System.out.println("TOKEN" + sqlRequest.getToken());
         String token = sqlRequest.getToken();
         JWTVerifier verifier = JWT.require(algorithm)
                 .withIssuer("auth0")
                 .build(); //Reusable verifier instance
         return verifier.verify(token);
-
-
-
     }
 
     @Override
