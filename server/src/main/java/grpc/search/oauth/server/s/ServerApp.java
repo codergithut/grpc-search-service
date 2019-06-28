@@ -9,7 +9,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 /**
  * Created by tianjian on 2019/6/26.
  */
-public class MainApp {
+public class ServerApp {
     public static void main(String[] args) throws Exception {
         ApplicationContext ctx =
                 new AnnotationConfigApplicationContext(BeanConfig.class);

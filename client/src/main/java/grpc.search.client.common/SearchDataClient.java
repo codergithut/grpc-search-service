@@ -67,7 +67,7 @@ public class SearchDataClient {
     }
 
     private String getTokenByUserNameAndPassWord(String userName, String passWord) {
-        OauthRequest request = OauthRequest.newBuilder().setPassword("tianjian").setName("tianjian").build();
+        OauthRequest request = OauthRequest.newBuilder().setPassword(passWord).setName(userName).build();
         OauthReply response = oauthBlockingStub.getOauthToken(request);
         return response.getToken();
 
@@ -84,7 +84,7 @@ public class SearchDataClient {
                     .build();
             serverBlockingStub = GetDataBySqlGrpc.newBlockingStub(server_channel);
         }
-        SqlRequest request = SqlRequest.newBuilder().setSql("select text, username from test")
+        SqlRequest request = SqlRequest.newBuilder().setSql(sql)
                 .setToken(token).build();
         ServerReply response = serverBlockingStub.getDataBySql(request);
         return response.getMessage();
@@ -93,7 +93,7 @@ public class SearchDataClient {
 
     public static void main(String[] args) throws InterruptedException {
         SearchDataClient searchDataClient = new SearchDataClient();
-        System.out.println(searchDataClient.getDataByServer("tianjian", "12345", "select text, username from test"));
+        System.out.println(searchDataClient.getDataByServer("tianjian1", "12345", "select text, username from test"));
 
     }
 

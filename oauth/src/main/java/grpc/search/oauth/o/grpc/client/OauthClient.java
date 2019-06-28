@@ -30,7 +30,7 @@ public class OauthClient {
     }
 
     public  void getDataByServer(String name){
-        OauthRequest request = OauthRequest.newBuilder().setPassword("haha").setName("tianjian").build();
+        OauthRequest request = OauthRequest.newBuilder().setPassword("haha").setName("tianjian1").build();
         OauthReply response = blockingStub.getOauthToken(request);
         System.out.println("service recive data : " + response.getToken());
         System.out.println("message code : " + response.getMessagecode());
@@ -38,8 +38,6 @@ public class OauthClient {
 
     public static void main(String[] args) throws InterruptedException {
         OauthClient client = new OauthClient("127.0.0.1",3002);
-        for(int i=0;i<5;i++){
-            client.getDataByServer("world:"+i);
-        }
+        client.getDataByServer("world:");
     }
 }
