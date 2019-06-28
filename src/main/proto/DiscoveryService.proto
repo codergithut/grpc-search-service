@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "grpc.search.server.grpc.d";
+option java_outer_classname = "DiscoveryServerProto";
+option objc_class_prefix = "HLW";
+
+package helloworld;
+
+// The greeting server definition.
+service GetDiscovery {
+    // Sends a greeting
+    rpc getDiscoveryInfo (DiscoveryRequest) returns (DiscoveryReply) {}
+}
+
+service RegisterDiscoveryInfo {
+    rpc registerDiscoverInfo (RegisterRequest) returns (RegisterReply) {}
+}
+
+//todo 缺少是否使用缓存，是否允许数据缓存
+// The request message containing the user's name.
+message DiscoveryRequest {
+    string username = 1;
+    string password = 2;
+}
+
+// The response message containing the greetings
+message DiscoveryReply {
+    int32 messagecode = 1;
+    string discoveryInfo = 2;
+}
+
+message RegisterRequest {
+    string url = 2;
+}
+
+message RegisterReply {
+    int32 messagecode = 1;
+}

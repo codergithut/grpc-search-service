@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "grpc.search.server.grpc.o";
+option java_outer_classname = "OauthServerProto";
+option objc_class_prefix = "HLW";
+
+package helloworld;
+
+// The greeting server definition.
+service GetOauthToken {
+    // Sends a greeting
+    rpc getOauthToken (OauthRequest) returns (OauthReply) {}
+}
+
+//todo 缺少是否使用缓存，是否允许数据缓存
+// The request message containing the user's name.
+message OauthRequest {
+    string name = 1;
+    string password = 2;
+}
+
+// The response message containing the greetings
+message OauthReply {
+    int32 messagecode = 1;
+    string token = 2;
+}

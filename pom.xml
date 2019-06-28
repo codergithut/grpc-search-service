@@ -6,7 +6,15 @@
 
     <groupId>grpc-search-service</groupId>
     <artifactId>grpc-search-service</artifactId>
+    <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
+    <modules>
+        <module>server</module>
+        <module>discovery</module>
+        <module>oauth</module>
+        <module>client_test</module>
+        <module>client</module>
+    </modules>
 
     <properties>
         <grpc.version>1.9.1</grpc.version>
