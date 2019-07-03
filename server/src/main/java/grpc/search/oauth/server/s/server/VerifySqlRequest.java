@@ -22,4 +22,8 @@ public interface VerifySqlRequest {
      * @return
      */
     boolean verifySqlPermission(SqlRequest sqlRequest, String userId);
+
+
+    boolean verifyIpPermission(String ip);
+
 }

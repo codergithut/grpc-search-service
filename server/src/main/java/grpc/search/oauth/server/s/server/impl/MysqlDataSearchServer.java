@@ -13,6 +13,7 @@ import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
+import javax.sql.DataSource;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -33,7 +34,7 @@ public class MysqlDataSearchServer implements DataSearchServer {
     private SqlRequest sqlRequest;
 
     @Autowired
-    DruidDataSource druidDataSource;
+    DataSource dataSource;
 
     public void setSQLRequest(SqlRequest sqlRequest) {
         this.sqlRequest = sqlRequest;
@@ -47,7 +48,7 @@ public class MysqlDataSearchServer implements DataSearchServer {
         List<Map<String, Object>> data = new ArrayList<>();
         PreparedStatement pstmt;
         try {
-            pstmt = druidDataSource.getConnection().prepareStatement(sql);
+            pstmt = dataSource.getConnection().prepareStatement(sql);
             ResultSet rs = pstmt.executeQuery();
             int col = rs.getMetaData().getColumnCount();
             List<String> cloNames = new ArrayList<String>();

@@ -1,13 +1,12 @@
 package grpc.search.oauth.server.s.config;
 
-import com.alibaba.druid.pool.DruidDataSource;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.google.common.util.concurrent.RateLimiter;
+import com.zaxxer.hikari.HikariDataSource;
 import grpc.search.oauth.server.s.grpc.client.DiscoveryClient;
 import grpc.search.oauth.server.s.grpc.server.HelloWorldServer;
 import grpc.search.oauth.server.s.server.*;
 import grpc.search.oauth.server.s.server.impl.*;
-import grpc.search.oauth.server.s.task.TaskServer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +17,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import javax.sql.DataSource;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -57,10 +57,10 @@ public class BeanConfig {
         return new DiscoveryClient(discoveryUrl, discoveryPort);
     }
 
-    @Bean
-    public TaskServer getTaskServer() {
-        return new TaskServer();
-    }
+//    @Bean
+//    public TaskServer getTaskServer() {
+//        return new TaskServer();
+//    }
 
     @Bean
     public ServiceLogServer getServiceLogServer() {
@@ -91,15 +91,12 @@ public class BeanConfig {
 
 
     @Bean
-    public DruidDataSource getDruidDataSource() {
-        DruidDataSource dataSource = new DruidDataSource();
+    public DataSource getDruidDataSource() {
+        HikariDataSource dataSource = new HikariDataSource();
         dataSource.setDriverClassName(driveName);
         dataSource.setUsername(userName);
         dataSource.setPassword(password);
-        dataSource.setUrl(url);
-        dataSource.setInitialSize(5);
-        dataSource.setMinIdle(1);
-        dataSource.setMaxActive(10);
+        dataSource.setJdbcUrl(url);
         return dataSource;
     }
 
