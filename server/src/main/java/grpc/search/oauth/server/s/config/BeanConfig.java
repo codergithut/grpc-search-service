@@ -197,4 +197,24 @@ public class BeanConfig {
         return new HelloWorldServer();
     }
 
+    @Bean
+    public CheckIDESqlPermission getCheckIDESqlPermission() {
+        CheckIDESqlPermission checkIDESqlPermission = new CheckIDESqlPermission();
+        return checkIDESqlPermission;
+    }
+
+    @Bean
+    public CheckSysSqlPermission getCheckSysSqlPermission() {
+        CheckSysSqlPermission checkSysSqlPermission = new CheckSysSqlPermission();
+        return checkSysSqlPermission;
+    }
+
+    @Bean
+    public  CheckSqlPermissionStream getCheckSqlPermissionStream() {
+        CheckSqlPermissionStream checkSqlPermissionStream = new CheckSqlPermissionStream();
+        checkSqlPermissionStream.registerCheckSqlPermission("IDE", getCheckIDESqlPermission());
+        checkSqlPermissionStream.registerCheckSqlPermission("Sys", getCheckSysSqlPermission());
+        return checkSqlPermissionStream;
+    }
+
 }

@@ -1,6 +1,5 @@
 package grpc.search.oauth.server.s.server.impl;
 
-import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.fastjson.JSON;
 import grpc.search.oauth.server.s.config.ResultCode;
 import grpc.search.oauth.server.s.grpc.mdoel.SqlRequest;
