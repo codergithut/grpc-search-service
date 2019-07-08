@@ -1,6 +1,5 @@
 package grpc.search.oauth.server.s.server;
 
-import com.auth0.jwt.interfaces.DecodedJWT;
 import grpc.search.oauth.server.s.config.ResultCode;
 import grpc.search.oauth.server.s.grpc.mdoel.SqlRequest;
 import grpc.search.oauth.server.s.grpc.service.GetDataBySqlGrpc;
@@ -77,18 +76,19 @@ public class GetDataBySqlServer
             return ;
         }
 
-        DecodedJWT jwt = null;
-        String keyId = null;
-        try {
-            jwt = verifySqlRequest.verifyTokenPermission(request);
-            keyId = jwt.getKeyId();
-        } catch (Exception e) {
+        if(!verifySqlRequest.verifyTokenPermission(request)) {
             messageCode = ResultCode.AUTH_ERROR_CODE;
             systemLogServer.error("Auth fail");
             writeResponseMessage(responseObserver, "verfiy fail", messageCode, request.getSql());
             return ;
         }
-        verifySqlRequest.verifySqlPermission(request, keyId);
+
+        if(!verifySqlRequest.verifySqlPermission(request, "test")) {
+            messageCode = ResultCode.AUTH_ERROR_CODE;
+            systemLogServer.error("Data Auth fail");
+            writeResponseMessage(responseObserver, "Data verfiy fail", messageCode, request.getSql());
+            return ;
+        }
         dataSearchServer.setSQLRequest(request);
         CacheModel cacheModel = new CacheModel();
         cacheModel.setReadCache(true);

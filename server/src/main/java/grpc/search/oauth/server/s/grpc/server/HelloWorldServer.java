@@ -3,6 +3,7 @@ package grpc.search.oauth.server.s.grpc.server;
 import grpc.search.oauth.server.s.server.GetDataBySqlServerProxy;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.grpc.ServerInterceptors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -18,10 +19,14 @@ public class HelloWorldServer {
     private Server server;
 
     @Autowired
+    private MyServerInterceptor myServerInterceptor;
+
+    @Autowired
     private GetDataBySqlServerProxy getDataBySqlServerProxy;
 
     public void start() throws IOException, InterruptedException {
         server = ServerBuilder.forPort(port)
+                .intercept(myServerInterceptor)
                 .addService(getDataBySqlServerProxy)
                 .build()
                 .start();

@@ -13,7 +13,7 @@ public interface VerifySqlRequest {
      * @param sqlRequest
      * @return
      */
-    DecodedJWT verifyTokenPermission(SqlRequest sqlRequest);
+    boolean verifyTokenPermission(SqlRequest sqlRequest);
 
     /**
      * 用户数据字段验证

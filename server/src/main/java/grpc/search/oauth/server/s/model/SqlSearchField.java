@@ -16,6 +16,11 @@ public class SqlSearchField {
     private String tableName;
 
     /**
+     * 操作表的动作
+     */
+    private String opt;
+
+    /**
      * 需要查询的列名
      */
     private Set<String> searchCloumNames = new HashSet<>();
@@ -34,6 +39,14 @@ public class SqlSearchField {
 
     public void setSearchCloumNames(Set<String> searchCloumNames) {
         this.searchCloumNames = searchCloumNames;
+    }
+
+    public String getOpt() {
+        return opt;
+    }
+
+    public void setOpt(String opt) {
+        this.opt = opt;
     }
 
     @Override

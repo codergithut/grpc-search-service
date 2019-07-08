@@ -4,6 +4,7 @@ import com.google.common.util.concurrent.RateLimiter;
 import grpc.search.oauth.server.s.grpc.mdoel.SqlRequest;
 import grpc.search.oauth.server.s.grpc.service.GetDataBySqlGrpc;
 import grpc.search.oauth.server.s.grpc.mdoel.ServerReply;
+import io.grpc.*;
 import io.grpc.stub.StreamObserver;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -26,8 +27,4 @@ public class GetDataBySqlServerProxy extends GetDataBySqlGrpc.GetDataBySqlImplBa
         rateLimiter.acquire();
         getDataBySqlServer.getDataBySql(request, responseObserver);
     }
-
-
-
-
 }

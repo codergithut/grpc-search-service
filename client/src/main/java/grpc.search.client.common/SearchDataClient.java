@@ -91,7 +91,7 @@ public class SearchDataClient {
     }
 
     private String getDataByServer(String sql) {
-        String token = "eyJraWQiOiJkMDJjZWFjMS04YjlhLTRmZmYtYmZmNy1iMGI2NjM2Mzg4MTYiLCJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJyb290Iiwic3ViIjoidGlhbmppYW4iLCJ0aWFuamlhbiI6dHJ1ZSwiaXNzIjoiYXV0aDAiLCJleHAiOjE1NjIzMTA0Nzl9.KARqZw08cYfYn08NqriKufMg7qpHSlz5Az9F8oHgYpU";
+        String token = "5550ea50-f129-4ce0-80e0-3a0d7dadf8b3";
         if(server_channel == null) {
             server_channel = ManagedChannelBuilder.forAddress("127.0.0.1", 3000)
                     .usePlaintext(true)
@@ -99,14 +99,14 @@ public class SearchDataClient {
             serverBlockingStub = GetDataBySqlGrpc.newBlockingStub(server_channel);
         }
         SqlRequest request = SqlRequest.newBuilder().setSql(sql)
-                .setToken(token).build();
+                .setToken(token).setName("client1").build();
         ServerReply response = serverBlockingStub.getDataBySql(request);
         return response.getMessage();
     }
 
     public static void main(String[] args) throws InterruptedException {
         SearchDataClient searchDataClient = new SearchDataClient();
-        System.out.println(searchDataClient.getDataByServer("select text, username from test"));
+        System.out.println(searchDataClient.getDataByServer("select text, username from docker.test"));
 
     }
 

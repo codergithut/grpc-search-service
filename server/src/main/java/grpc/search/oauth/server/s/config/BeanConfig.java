@@ -5,6 +5,7 @@ import com.google.common.util.concurrent.RateLimiter;
 import com.zaxxer.hikari.HikariDataSource;
 import grpc.search.oauth.server.s.grpc.client.DiscoveryClient;
 import grpc.search.oauth.server.s.grpc.server.HelloWorldServer;
+import grpc.search.oauth.server.s.grpc.server.MyServerInterceptor;
 import grpc.search.oauth.server.s.server.*;
 import grpc.search.oauth.server.s.server.impl.*;
 import org.apache.commons.logging.Log;
@@ -44,6 +45,13 @@ public class BeanConfig {
         executor.setThreadNamePrefix("taskExecutor-");
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
         return executor;
+    }
+
+
+
+    @Bean
+    public MyServerInterceptor getMyServerInterceptor() {
+        return new MyServerInterceptor();
     }
 
     @Value("${server.discoveryPort}")

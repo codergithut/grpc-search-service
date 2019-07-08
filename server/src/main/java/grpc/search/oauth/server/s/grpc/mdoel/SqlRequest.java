@@ -660,7 +660,6 @@ private static final long serialVersionUID = 0L;
      * <code>string token = 2;</code>
      */
     public Builder clearToken() {
-
       token_ = getDefaultInstance().getToken();
       onChanged();
       return this;
