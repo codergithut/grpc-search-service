@@ -1,7 +1,6 @@
 package grpc.search.oauth.server.s.server;
 
 import grpc.search.oauth.server.s.model.SqlSearchField;
-import grpc.search.oauth.server.s.server.CheckSqlPermission;
 
 import java.util.HashMap;
 import java.util.List;
